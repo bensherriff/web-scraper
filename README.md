@@ -18,3 +18,7 @@ Required packages can be viewed in requirements.txt. The following command can b
 ```
   $ python3 scraper [FLAGS] [URL]
 ```
+
+## TODO
+* Add depth limit
+* Filter website links

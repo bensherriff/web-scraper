@@ -1,1 +1,7 @@
-{"csv": "scraper.csv", "save": true, "generic": true, "tags": []}
+{
+    "csv": "output.csv",
+    "save": true,
+    "generic_search": true,
+    "tags": [],
+    "parsing": []
+}

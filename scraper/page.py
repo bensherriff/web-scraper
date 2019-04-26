@@ -21,24 +21,45 @@ class Webpage(object):
   def pageRequest(self):
     scheme = ["http", "https"]
     domains = [".com", ".org", ".net", ".int", ".edu", ".gov", ".mil"]
+    preFix = False
+    postFix = False
     
     try:
       # Check if site includes scheme (http:// or https://)
-      prefix = self.site.partition("://")
-      if not prefix in scheme:
+      for substring in scheme:
+        if substring in self.site:
+          preFix = True
+          break
+
+      # If scheme is missing, try adding http
+      if preFix == False:
+        print("[Error] Invalid URL: %s - Missing Scheme" % self.site)
         self.site = "http://" + self.site
-        print("[+] Missing scheme, fixing format...\n    URL:", self.site)
-      
-      request = requests.get(self.site, params=dict(
-          query="web scraping",
-          page=2
-      ))
-      self.status_code = request.status_code
-      if self.status_code != 200:
-        print("[Error] Status: %d" % self.status_code)
-    except:
-      print("[Error] Invalid URL: %s" % self.site)
-      request = -1
+        print("        Adding Scheme: %s" % self.site)
+
+      # Check if site includes domain (.com, .org, etc)
+      for substring in domains:
+        if substring in self.site:
+          postFix = True
+          break
+
+      # If domain is missing, show error and return
+      if postFix == False:
+        print("[Error] Invalid URL: %s - Missing Domain" % self.site)
+        return -1
+        
+      # If domain is valid, continue with request
+      else:
+        request = requests.get(self.site, params=dict(
+            query="web scraping",
+            page=2
+        ))
+        self.status_code = request.status_code
+        if self.status_code != 200:
+          print("[Error] Status: %d" % self.status_code)
+    except Exception as e:
+      print("[Error] URL: %s\n        %s" % (self.site, e))
+      return -1
 
     return request
 
@@ -50,14 +71,17 @@ class Webpage(object):
   '''
   def pageParse(self, tag=None):
     soup = BeautifulSoup(self.request.text, "html.parser")
-    data = []
+    data = [[],[]]
+    
+    divs = soup.find_all("div")
+    data[0] = []
+    for i in divs:
+      data[0].append([i])
 
     links = soup.find_all("a", href=True)
-    divs = soup.find_all("div")
-    data.append("Links: " + str(len(links)))
     for i in links:
-      link = (i["href"])
-      data.append(link)
+      d = i["href"]
+      data[1].append([d])
     return data
 
   '''
@@ -69,8 +93,15 @@ class Webpage(object):
   def pageWrite(self, file, data):
     file = file["csv"]
     with open(file, "w") as f:
-      writer = csv.writer(f)
-      writer.writerow(data)
+      w = csv.writer(f)
+      
+      w.writerow(["DIVS (" + str(len(data[0])) + ")"])
+      for i in data[0]:
+        w.writerow(i)
+      w.writerow(["LINKS (" + str(len(data[1])) + ")"])
+      # w.writerow(data[1])
+      for i in data[1]:
+        w.writerow(i)
     print("[+] Data written to", file)
 
   '''

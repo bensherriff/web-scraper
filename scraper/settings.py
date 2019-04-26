@@ -28,13 +28,13 @@ class Settings(object):
       else:
         self.file["save"] = False
 
-      genericIn = input("[3] Search for specific tag(s)? " + ("[Y]/N " if self.file["generic"] == False else "Y/[N]"))
-      if genericIn.lower() == "y" or (genericIn == "" and self.file["generic"] == False):
+      genericIn = input("[3] Search for specific tag(s)? " + ("[Y]/N " if self.file["generic_search"] == False else "Y/[N]"))
+      if genericIn.lower() == "y" or (genericIn == "" and self.file["generic_search"] == False):
         tagsIn = input("[3.1] Enter tags to search for (separated by space) ")
         tagsIn = tagsIn.split()
         self.file["tags"] = tagsIn
       else:
-        self.file["generic"] = True
+        self.file["generic_search"] = True
 
       doneIn = input("[4] Done configuring? [Y]/N ")
       if doneIn.lower() == "y" or doneIn == "":

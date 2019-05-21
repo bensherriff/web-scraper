@@ -10,8 +10,7 @@ import page, args
 def main():
   try:
     a = args.Arguments()
-    url = a.argv.URL
-    p = page.Webpage(url)
+    p = page.Webpage(a.argv)
   except KeyboardInterrupt:
     print("\n[+] Exiting")
     exit()

@@ -2,8 +2,9 @@ import requests, csv, settings
 from bs4 import BeautifulSoup
 
 class Webpage(object):
-  def __init__(self, site):
-    self.site = site
+  def __init__(self, argv):
+    self.site = argv.URL
+    self.depth = argv.depth
     self.request = ""
     self.file = ""
     self.status_code = 0

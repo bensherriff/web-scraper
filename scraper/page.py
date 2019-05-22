@@ -57,8 +57,8 @@ class Webpage(object):
       # If domain is valid, continue with request
       else:
         request = requests.get(self.site, params=dict(
-            query="web scraping",
-            page=2
+          query="web scraping",
+          page=2
         ))
         self.status_code = request.status_code
         if self.status_code != 200:

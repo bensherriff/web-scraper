@@ -1,4 +1,4 @@
-import argparse, settings
+import argparse
 
 class Arguments(object):
   def __init__(self):

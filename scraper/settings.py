@@ -1,40 +1,53 @@
 import json
 
 class Settings(object):
-  def __init__(self):
-    self.file = {}
+  def __init__(self, configFlag=False):
     self.configFile = "configuration.json"
+    self.config = {
+      "csv": "output.csv",
+      "save": True,
+      "generic_search": True,
+      "tags": [],
+      "parsing": []
+    }
     self.read()
+    if configFlag:
+      self.configure()
 
   def read(self):
-    with open(self.configFile, "r") as f:
-      self.file = json.loads(f.read())
+    try:
+      with open(self.configFile, "r") as f:
+        self.config = json.loads(f.read())
+    # If file does not exist, create file with the default configuration
+    except FileNotFoundError:
+      with open(self.configFile, "w+") as f:
+        json.dump(self.config, f)
 
   def write(self):
     with open(self.configFile, "w") as f:
-      json.dump(self.file, f)
+      json.dump(self.config, f)
 
   def configure(self):
     while True:
-      saveIn = input("[1] Save data to CSV? " + ("[Y]/N " if self.file["save"] == True else "Y/[N]"))
-      if saveIn.lower() == "y" or (saveIn == "" and self.file["save"] == True):
-        self.file["save"] = True
+      saveIn = input("[1] Save data to CSV? " + ("[Y]/N " if self.config["save"] == True else "Y/[N] "))
+      if saveIn.lower() == "y" or (saveIn == "" and self.config["save"] == True):
+        self.config["save"] = True
 
-        fileIn = input("[2 CSV Save Location: (" + self.file["csv"] + ") ")
+        fileIn = input("[2] CSV Save Location: (" + self.config["csv"] + ") ")
         if fileIn != "":
           if fileIn[-4] != ".csv":
             fileIn = fileIn + ".csv"
-          self.file["csv"] = fileIn
+          self.config["csv"] = fileIn
       else:
-        self.file["save"] = False
+        self.config["save"] = False
 
-      genericIn = input("[3] Search for specific tag(s)? " + ("[Y]/N " if self.file["generic_search"] == False else "Y/[N]"))
-      if genericIn.lower() == "y" or (genericIn == "" and self.file["generic_search"] == False):
+      genericIn = input("[3] Search for specific tag(s)? " + ("[Y]/N " if self.config["generic_search"] == False else "Y/[N] "))
+      if genericIn.lower() == "y" or (genericIn == "" and self.config["generic_search"] == False):
         tagsIn = input("[3.1] Enter tags to search for (separated by space) ")
         tagsIn = tagsIn.split()
-        self.file["tags"] = tagsIn
+        self.config["tags"] = tagsIn
       else:
-        self.file["generic_search"] = True
+        self.config["generic_search"] = True
 
       doneIn = input("[4] Done configuring? [Y]/N ")
       if doneIn.lower() == "y" or doneIn == "":

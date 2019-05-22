@@ -1,4 +1,4 @@
-import requests, csv, settings
+import requests, settings
 from bs4 import BeautifulSoup
 
 class Webpage(object):
@@ -6,8 +6,12 @@ class Webpage(object):
     self.site = argv.URL
     self.depth = argv.depth
     self.request = ""
-    self.file = ""
     self.status_code = 0
+    self.links = {
+      "internal": [],
+      "external": [],
+      "mail": []
+    }
     self.pageStart()
 
   '''
@@ -25,24 +29,25 @@ class Webpage(object):
     preFix = False
     postFix = False
     
+    # Check if site includes scheme (http:// or https://)
+    for substring in scheme:
+      if substring in self.site:
+        preFix = True
+        break
+
+    # Check if site includes domain (.com, .org, etc)
+    for substring in domains:
+      if substring in self.site:
+        postFix = True
+        break
     try:
-      # Check if site includes scheme (http:// or https://)
-      for substring in scheme:
-        if substring in self.site:
-          preFix = True
-          break
 
       # If scheme is missing, try adding http
       if preFix == False:
-        print("[Error] Invalid URL: %s - Missing Scheme" % self.site)
+        print("[Error] Invalid URL: %s" % self.site)
+        print("        Missing Scheme: http:// or https://")
         self.site = "http://" + self.site
         print("        Adding Scheme: %s" % self.site)
-
-      # Check if site includes domain (.com, .org, etc)
-      for substring in domains:
-        if substring in self.site:
-          postFix = True
-          break
 
       # If domain is missing, show error and return
       if postFix == False:
@@ -52,8 +57,8 @@ class Webpage(object):
       # If domain is valid, continue with request
       else:
         request = requests.get(self.site, params=dict(
-            query="web scraping",
-            page=2
+          query="web scraping",
+          page=2
         ))
         self.status_code = request.status_code
         if self.status_code != 200:
@@ -77,12 +82,19 @@ class Webpage(object):
     divs = soup.find_all("div")
     data[0] = []
     for i in divs:
-      data[0].append([i])
+      data[0].append(i)
 
     links = soup.find_all("a", href=True)
     for i in links:
       d = i["href"]
-      data[1].append([d])
+      if d == "#" or d == "/" or d == "":
+        continue
+      if d[0:1] == "#" or d[0:1] == "/":
+        self.links["internal"].append(d)
+      elif d[0:6] == "mailto":
+        self.links["mail"].append(d[7:])
+      else:
+        self.links["external"].append(d)
     return data
 
   '''
@@ -91,19 +103,35 @@ class Webpage(object):
   Arguments:
   Return:
   '''
-  def pageWrite(self, file, data):
-    file = file["csv"]
-    with open(file, "w") as f:
-      w = csv.writer(f)
-      
-      w.writerow(["DIVS (" + str(len(data[0])) + ")"])
-      for i in data[0]:
-        w.writerow(i)
-      w.writerow(["LINKS (" + str(len(data[1])) + ")"])
-      # w.writerow(data[1])
-      for i in data[1]:
-        w.writerow(i)
-    print("[+] Data written to", file)
+  def pageWrite(self, configuration, data):
+    fileName = configuration["csv"]
+    with open(fileName, "w") as f:
+
+      f.write("URL: " + self.site + "\n")
+      f.write("TOTAL LINKS (" + str(sum(map(len, self.links.values()))) + ")\n")
+
+      if len(self.links["internal"]) > 0:
+        f.write("INTERNAL LINKS (" + str(len(self.links["internal"])) + ")\n")
+        for i in self.links["internal"]:
+          f.write(str(i))
+          if i is not self.links["internal"][-1]:
+            f.write(",")
+
+      if len(self.links["external"]) > 0:
+        f.write("\nEXTERNAL LINKS (" + str(len(self.links["external"])) + ")\n")
+        for i in self.links["external"]:
+          f.write(str(i))
+          if i is not self.links["external"][-1]:
+            f.write(",")
+
+      if len(self.links["mail"]) > 0:
+        f.write("\nMAIL LINKS (" + str(len(self.links["mail"])) + ")\n")
+        for i in self.links["mail"]:
+          f.write(str(i))
+          if i is not self.links["mail"][-1]:
+            f.write(",")
+
+    print("[+] Data written to", fileName)
 
   '''
   pageStart()
@@ -120,8 +148,10 @@ class Webpage(object):
 
     data = self.pageParse()
 
-    if s.file["save"] == True:
-      self.pageWrite(s.file, data)
+    if s.config["save"] == True:
+      self.pageWrite(s.config, data)
+    else:
+      return
 
 
     # while True:

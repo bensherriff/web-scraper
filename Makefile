@@ -4,3 +4,4 @@ init:
 clean:
 	find . -name '*.pyc' -delete
 	find . -name '*.csv' -delete
+	find . -name '*.json' -delete

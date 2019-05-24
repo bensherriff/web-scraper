@@ -1,12 +1,22 @@
-import requests, settings
+import requests, settings, datetime
 from bs4 import BeautifulSoup
+from threading import *
+from queue import Queue
+
+class Worker(Thread):
+    def __init__(self, args):
+      Thread.__init__(self)
+      s = settings.Settings()
+      p = Webpage(s, args.URL, args.depth)
+      self.links = p.links
 
 class Webpage(object):
-  def __init__(self, argv):
-    self.site = argv.URL
-    self.depth = argv.depth
+  def __init__(self, s, url, depth):
+    self.site = url
+    self.depth = depth
     self.request = ""
     self.status_code = 0
+    self.s = s
     self.links = {
       "internal": [],
       "external": [],
@@ -24,19 +34,18 @@ class Webpage(object):
   Return: Request
   '''
   def pageRequest(self):
-    scheme = ["http", "https"]
-    domains = [".com", ".org", ".net", ".int", ".edu", ".gov", ".mil"]
+    
     preFix = False
     postFix = False
     
     # Check if site includes scheme (http:// or https://)
-    for substring in scheme:
+    for substring in self.s.scheme:
       if substring in self.site:
         preFix = True
         break
 
     # Check if site includes domain (.com, .org, etc)
-    for substring in domains:
+    for substring in self.s.domains:
       if substring in self.site:
         postFix = True
         break
@@ -62,7 +71,8 @@ class Webpage(object):
         ))
         self.status_code = request.status_code
         if self.status_code != 200:
-          print("[Error] Status: %d" % self.status_code)
+          print("[Error] Site: %s" % self.site)
+          print("        Status: %d" % self.status_code)
     except Exception as e:
       print("[Error] URL: %s\n        %s" % (self.site, e))
       return -1
@@ -105,9 +115,11 @@ class Webpage(object):
   '''
   def pageWrite(self, configuration, data):
     fileName = configuration["csv"]
-    with open(fileName, "w") as f:
+    with open(fileName, "a") as f:
 
       f.write("URL: " + self.site + "\n")
+      currentDT = datetime.datetime.now()
+      f.write("Time: " + str(currentDT.strftime("%Y-%m-%d %H:%M:%S")) + "\n")
       f.write("TOTAL LINKS (" + str(sum(map(len, self.links.values()))) + ")\n")
 
       if len(self.links["internal"]) > 0:
@@ -116,20 +128,25 @@ class Webpage(object):
           f.write(str(i))
           if i is not self.links["internal"][-1]:
             f.write(",")
+        f.write("\n")
 
       if len(self.links["external"]) > 0:
-        f.write("\nEXTERNAL LINKS (" + str(len(self.links["external"])) + ")\n")
+        f.write("EXTERNAL LINKS (" + str(len(self.links["external"])) + ")\n")
         for i in self.links["external"]:
           f.write(str(i))
           if i is not self.links["external"][-1]:
             f.write(",")
+        f.write("\n")
 
       if len(self.links["mail"]) > 0:
-        f.write("\nMAIL LINKS (" + str(len(self.links["mail"])) + ")\n")
+        f.write("MAIL LINKS (" + str(len(self.links["mail"])) + ")\n")
         for i in self.links["mail"]:
           f.write(str(i))
           if i is not self.links["mail"][-1]:
             f.write(",")
+        f.write("\n")
+
+      f.write("\n")
 
     print("[+] Data written to", fileName)
 
@@ -140,38 +157,14 @@ class Webpage(object):
   Return:
   '''
   def pageStart(self):
-    s = settings.Settings()
-
     self.request = self.pageRequest()
     if (self.request == -1):
-      return
+      return 0
 
+    print("[+] Accessing " + self.site)
     data = self.pageParse()
 
-    if s.config["save"] == True:
-      self.pageWrite(s.config, data)
+    if self.s.config["save"] == True:
+      self.pageWrite(self.s.config, data[0])
     else:
-      return
-
-
-    # while True:
-    #   # If searching for a specific tag
-    #   choice = input("[Input] Search for specific tag? [Y]/[N]: ")
-    #   if choice.lower() == "y":
-    #     tag = input("[Input] Tag: ")
-    #     data.append(self.pageParse(tag))
-    #   # If collecting generic data
-    #   else:
-    #     data.append(self.pageParse())
-
-    #   # If collecting more data
-    #   choice = input("[Input] Continue search? [Y]/[N]: ")
-    #   if choice.lower() == "y":
-    #     continue
-    #   # If done collecting data
-    #   else:
-    #     if choice.lower() == "y":
-    #       choice = input("[Input] Store data? [Y]/[N]: ")         
-    #       break
-
-    #   self.pageWrite(data)
+      return 1

@@ -10,6 +10,10 @@ class Settings(object):
       "tags": [],
       "parsing": []
     }
+
+    self.scheme = ["http", "https"]
+    self.domains = [".com", ".org", ".net", ".int", ".edu", ".gov", ".mil", ".info"]
+
     self.read()
     if configFlag:
       self.configure()

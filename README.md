@@ -9,7 +9,7 @@ Web-Scraper was developed to practice good python file structure and to develop 
 * beautifulsoup4
 
 ## Setup
-Required packages can be viewed in requirements.txt. The following command can be run to quickly install the requirements:
+Required packages can be viewed in requirements.txt. Using the makefile requires `pip` to be installed. The following command can be run to quickly install the requirements:
 ```
   $ make init
 ```

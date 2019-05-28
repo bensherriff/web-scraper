@@ -1,22 +1,12 @@
 import requests, settings, datetime
 from bs4 import BeautifulSoup
-from threading import *
-from queue import Queue
-
-class Worker(Thread):
-    def __init__(self, args):
-      Thread.__init__(self)
-      s = settings.Settings()
-      p = Webpage(s, args.URL, args.depth)
-      self.links = p.links
 
 class Webpage(object):
-  def __init__(self, s, url, depth):
+  def __init__(self, url):
     self.site = url
-    self.depth = depth
     self.request = ""
     self.status_code = 0
-    self.s = s
+    self.s = settings.Settings()
     self.links = {
       "internal": [],
       "external": [],

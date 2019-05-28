@@ -1,4 +1,4 @@
-import page, settings
+import page, settings, time
 from threading import *
 from queue import Queue, Empty
 
@@ -7,7 +7,7 @@ class Worker(Thread):
         Thread.__init__(self)
         self.tasks = tasks
         self.threadNumber = threadNumber
-        self.exit_status = False
+        self.exitStatus = False
         self.done = Event()
         self.links = {
             "internal": [],
@@ -17,11 +17,14 @@ class Worker(Thread):
         self.start()
 
     def run(self):
-        while not self.exit_status:
+        while not self.exitStatus:
             try:
-                task = self.tasks.get(block=False, timeout=1)
+                task = self.tasks.get(block=False, timeout=0)
                 p = page.Webpage(task)
-                self.links.update({"internal" : p.links["external"]})
+                self.links = p.links
+                # self.links.update({"internal" : p.links["internal"]})
+                # self.links.update({"external" : p.links["external"]})
+                # self.links.update({"mail" : p.links["mail"]})
             except Empty as e:
                 pass
 
@@ -29,7 +32,7 @@ class Worker(Thread):
         return self.links[key]
 
     def exit(self):
-        self.exit_status = True
+        self.exitStatus = True
 
 class ThreadPool:
     def __init__(self, args, tasks=[]):
@@ -50,9 +53,9 @@ class ThreadPool:
             self.workers.append(Worker(self.tasks, i))
 
     def addTasks(self):
+        time.sleep(0.5)
         for worker in self.workers:
-            tasks = worker.returnTasks()
-            for task in tasks:
+            for task in worker.returnTasks():
                 self.tasks.put(task)
 
     def closeThreads(self):

@@ -11,8 +11,7 @@ class Settings(object):
       "parsing": []
     }
 
-    self.scheme = ["http", "https"]
-    self.domains = [".com", ".org", ".net", ".int", ".edu", ".gov", ".mil", ".info", ".io", ".co"]
+    # self.domains = [".com", ".org", ".net", ".int", ".edu", ".gov", ".mil", ".info", ".io", ".co"]
 
     self.read()
     if configFlag:

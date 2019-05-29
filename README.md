@@ -18,7 +18,3 @@ Required packages can be viewed in requirements.txt. Using the makefile requires
 ```
   $ python3 scraper [FLAGS] [URL]
 ```
-
-## TODO
-* Add depth limit
-* Filter website links
